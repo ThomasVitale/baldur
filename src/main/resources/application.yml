@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: baldur
+  ai:
+    ollama:
+      init:
+        pull-model-strategy: when_missing
+      chat:
+        options:
+          model: granite3.3:2b
+      embedding:
+        options:
+          model: granite-embedding:30m
+
+logging:
+  level:
+    org.atmosphere: warn
+
+vaadin:
+  launch-browser: true
+
+arconia:
+  otel:
+    metrics:
+      exporter:
+        interval: 5s

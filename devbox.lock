@@ -1,0 +1,91 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2025-09-25T01:21:52Z",
+      "resolved": "github:NixOS/nixpkgs/e57b3b16ad8758fd681511a078f35c416a8cc939?lastModified=1758763312"
+    },
+    "github:thomasvitale/arconia-cli-flake": {
+      "last_modified": "2025-09-26T14:58:28Z",
+      "resolved": "github:thomasvitale/arconia-cli-flake/25cfdf5e202d2f07866cd2ee8b6ecd4b3972d958?lastModified=1758898708"
+    },
+    "httpie@latest": {
+      "last_modified": "2025-09-18T16:33:27Z",
+      "resolved": "github:NixOS/nixpkgs/f4b140d5b253f5e2a1ff4e5506edbf8267724bde#httpie",
+      "source": "devbox-search",
+      "version": "3.2.4",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/fj99rpp91gh3rpjh8ijhmr7w1lsjm00q-python3.13-httpie-3.2.4",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/mb0xsxyp0lm1xx2xh99vw6vapan9jv1q-python3.13-httpie-3.2.4-dist"
+            }
+          ],
+          "store_path": "/nix/store/fj99rpp91gh3rpjh8ijhmr7w1lsjm00q-python3.13-httpie-3.2.4"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/80fvcswd17122wymkg9s3xmf34798znv-python3.13-httpie-3.2.4",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/71xbbmrj51cnr7w3s5gbyvp0k9lkqyxv-python3.13-httpie-3.2.4-dist"
+            }
+          ],
+          "store_path": "/nix/store/80fvcswd17122wymkg9s3xmf34798znv-python3.13-httpie-3.2.4"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mwsi63y22dyiwssp5nbxb96x241wjmjg-python3.13-httpie-3.2.4",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/035y6s58bfx2xnl81casnrms3h7lwl0m-python3.13-httpie-3.2.4-dist"
+            }
+          ],
+          "store_path": "/nix/store/mwsi63y22dyiwssp5nbxb96x241wjmjg-python3.13-httpie-3.2.4"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wz155fzj2fkd8cclnsid4abxy0aix2dj-python3.13-httpie-3.2.4",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/8lnxidwifmnvki0pbhq4wg2v8kmpjm7y-python3.13-httpie-3.2.4-dist"
+            }
+          ],
+          "store_path": "/nix/store/wz155fzj2fkd8cclnsid4abxy0aix2dj-python3.13-httpie-3.2.4"
+        }
+      }
+    },
+    "zulu25": {
+      "resolved": "github:NixOS/nixpkgs/e57b3b16ad8758fd681511a078f35c416a8cc939#zulu25",
+      "source": "nixpkg",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/66bfa9mca1ah655ipm9l0g43fc21nd7n-zulu-ca-jdk-25.0.0",
+              "default": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}
