@@ -38,6 +38,13 @@ If instead you want to rely on the [Ollama Dev Service](https://arconia.io/docs/
 
 Either way, the application will be accessible at http://localhost:8080.
 
+## Accessing the application
+
+There are two pre-configured users you can use to access the application:
+
+* JonSnow/password (user)
+* ArabellaFigg/patronus (admin)
+
 ## Accessing Grafana
 
 The application logs will show you the URL where you can access the Grafana observability platform.
