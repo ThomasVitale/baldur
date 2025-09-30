@@ -44,6 +44,9 @@ jobs:
       contents: read
       id-token: write
       packages: write
+    outputs:
+      image-digest: ${{ steps.image-info.outputs.digest }}
+      image-name: ${{ steps.image-info.outputs.name }}
     steps:
       - name: Check out source code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -75,10 +78,10 @@ jobs:
 
       - name: Build and publish OCI image
         run: |
-          ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform ${{ matrix.platform }}=linux/amd64
+          ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform linux/amd64
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest-amd64
 
-          ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform ${{ matrix.platform }}=linux/arm64
+          ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform linux/arm64
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest-arm64
       
           docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest \
