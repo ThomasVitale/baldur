@@ -72,20 +72,26 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
-      - name: Login to container registry
+      - name: Login to Podman
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
       
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+
       - name: Build and publish OCI image
         run: |
-          docker context create podman --docker "host=unix://${HOME}/.local/share/containers/podman/machine/podman.sock"
-          docker context use podman
           ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform ${{ matrix.platform }} -PisPodman
-          podman push ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
       
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
+          podman pull ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
           digest=$(podman inspect ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest --format '{{.Digest}}')
           touch "/tmp/digests/${digest#sha256:}"
       
