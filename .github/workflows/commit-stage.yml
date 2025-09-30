@@ -3,9 +3,10 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: thomasvitale/baldur
 
 permissions:
   contents: read
@@ -34,3 +35,132 @@ jobs:
 
       - name: Compile and test
         run: ./gradlew clean assemble
+  
+  package:
+    runs-on: ubuntu-24.04
+    needs: [build]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Check out source code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+      
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@6f327093bb6a42fe5eac053d21b168c46aa46f22 # v1.2.4
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@0bdd871935719febd78681f197cd39af5b6e16a6 # v4.2.2
+
+      - name: Login to container registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+      
+      - name: Build and publish OCI image
+        run: |
+          ./gradlew bootBuildImage --image ${{ env.REGISTRY }}/${{ env.IMAGE }} --platform ${{ matrix.platform }}
+          podman push ${{ env.REGISTRY }}/${{ env.IMAGE }}
+      
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest=$(podman inspect ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest --format '{{.Digest}}')
+          touch "/tmp/digests/${digest#sha256:}"
+      
+      - name: Upload digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: digests-${{ env.IMAGE }}-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [package]
+    runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+      packages: write
+    outputs:
+      image-digest: ${{ steps.image-info.outputs.digest }}
+      image-name: ${{ steps.image-info.outputs.name }}
+    steps:
+      - name: Prepare
+        run: |
+          timestamp=$(date +%Y%m%d-%H%M%S)
+          echo "TIMESTAMP=${timestamp}" >> $GITHUB_ENV
+
+      - name: Download digests
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ env.IMAGE }}-*
+          merge-multiple: true
+      
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
+
+      - name: Generate image metadata
+        id: meta
+        run: |
+          echo "version=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "timestamp=${{ env.TIMESTAMP }}" >> $GITHUB_OUTPUT
+
+      - name: Login to container registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+      
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          # Create tags for the manifest
+          tags="${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TIMESTAMP }} ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest"
+          
+          # Create manifest list with podman
+          for tag in $tags; do
+            podman manifest create $tag
+            for digest_file in *; do
+              podman manifest add $tag ${{ env.REGISTRY }}/${{ env.IMAGE }}@sha256:$digest_file
+            done
+            podman manifest push $tag
+          done
+
+      - name: Get OCI image digest
+        id: image-info
+        run: |
+          image_digest=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TIMESTAMP }} | jq -r '.Digest')
+          echo $image_digest
+          echo "IMAGE_DIGEST=${image_digest}" >> $GITHUB_ENV
+          echo "digest=${image_digest}" >> $GITHUB_OUTPUT
+          echo "name=${{ env.REGISTRY }}/${{ env.IMAGE }}" >> $GITHUB_OUTPUT
+
+      - name: Sign image
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE }}@${{ env.IMAGE_DIGEST }}
+      
+      - name: Generate SLSA Build Attestation
+        uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v1.4.4
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          subject-digest: ${{ env.IMAGE_DIGEST }}
+          push-to-registry: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
