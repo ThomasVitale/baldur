@@ -78,7 +78,7 @@ jobs:
       
       - name: Build and publish OCI image
         run: |
-          ./gradlew bootBuildImage --image ${{ env.REGISTRY }}/${{ env.IMAGE }} --platform ${{ matrix.platform }}
+          ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform ${{ matrix.platform }}
           podman push ${{ env.REGISTRY }}/${{ env.IMAGE }}
       
       - name: Export digest
