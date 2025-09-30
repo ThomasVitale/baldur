@@ -78,8 +78,9 @@ jobs:
       
       - name: Build and publish OCI image
         run: |
+          docker context create podman --docker "host=unix://${HOME}/.local/share/containers/podman/machine/podman.sock"
+          docker context use podman
           ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }} --imagePlatform ${{ matrix.platform }} -PisPodman
-          skopeo copy docker-daemon:${{ env.REGISTRY }}/${{ env.IMAGE }}:latest oci:${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
           podman push ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
       
       - name: Export digest
