@@ -69,12 +69,4 @@ tasks.named('test') {
 
 tasks.named('bootBuildImage') {
     builder = "paketobuildpacks/builder-noble-java-tiny"
-
-	if (project.hasProperty('isPodman')) {
-		docker {
-			host = "unix:///run/user/1000/podman/podman.sock"
-			bindHostToBuilder = true
-		}
-	}
-	
 }
