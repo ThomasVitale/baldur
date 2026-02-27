@@ -63,6 +63,7 @@ out/
 
 ### Vaadin ###
 node_modules/
+src/main/bundles/
 src/main/frontend/generated/
 pnpmfile.js
 vite.generated.ts

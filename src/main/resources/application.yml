@@ -7,7 +7,7 @@ spring:
         pull-model-strategy: when_missing
       chat:
         options:
-          model: granite3.3:2b
+          model: ministral-3:3b
       embedding:
         options:
           model: granite-embedding:30m
